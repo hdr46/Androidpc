@@ -1,107 +1,107 @@
 package com.xp.launcher;
 
 import android.app.Activity;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
+import android.content.pm.*;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MainActivity extends Activity {
+    PopupWindow startPopup;
+    FrameLayout root;
+    float dX, dY;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
-        // Main Layout
-        FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(Color.parseColor("#3A6EA5")); // XP Blue
-        
-        // Desktop Grid
-        GridView grid = new GridView(this);
-        grid.setNumColumns(4);
-        grid.setVerticalSpacing(20);
-        grid.setHorizontalSpacing(10);
-        grid.setPadding(20,20,20,100);
-        grid.setGravity(Gravity.CENTER);
+    protected void onCreate(Bundle s){
+        super.onCreate(s);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
-        PackageManager pm = getPackageManager();
-        List<ApplicationInfo> apps = pm.getInstalledApplications(0);
-        ArrayList<ApplicationInfo> userApps = new ArrayList<>();
-        for(ApplicationInfo a: apps) if(pm.getLaunchIntentForPackage(a.packageName)!=null) userApps.add(a);
+        root = new FrameLayout(this);
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{Color.parseColor("#1E3C72"), Color.parseColor("#2A5298"), Color.parseColor("#3A7BD5")});
+        root.setBackground(bg);
 
-        grid.setAdapter(new BaseAdapter() {
-            public int getCount(){return userApps.size();}
-            public Object getItem(int p){return userApps.get(p);}
-            public long getItemId(int p){return p;}
-            public View getView(int pos, View v, ViewGroup parent){
-                LinearLayout ll = new LinearLayout(MainActivity.this);
-                ll.setOrientation(LinearLayout.VERTICAL);
-                ll.setGravity(Gravity.CENTER);
-                ll.setPadding(10,10,10,10);
-                try{
-                    ImageView iv = new ImageView(MainActivity.this);
-                    iv.setImageDrawable(pm.getApplicationIcon(userApps.get(pos)));
-                    iv.setLayoutParams(new LinearLayout.LayoutParams(96,96));
-                    TextView tv = new TextView(MainActivity.this);
-                    tv.setText(pm.getApplicationLabel(userApps.get(pos)));
-                    tv.setTextColor(Color.WHITE);
-                    tv.setTextSize(11);
-                    tv.setGravity(Gravity.CENTER);
-                    tv.setShadowLayer(2,1,1,Color.BLACK);
-                    ll.addView(iv);
-                    ll.addView(tv);
-                }catch(Exception e){}
-                return ll;
-            }
-        });
-        grid.setOnItemClickListener((p,v,pos,id)->{
-            try{startActivity(pm.getLaunchIntentForPackage(userApps.get(pos).packageName));}catch(Exception e){}
-        });
-        root.addView(grid);
+        // Desktop Icons
+        LinearLayout desk = new LinearLayout(this);
+        desk.setOrientation(LinearLayout.VERTICAL);
+        desk.setPadding(25,100,0,0);
+        String[][] icons = {{"\uD83D\uDCBB","Computer"},{"\uD83D\uDDD1\uFE0F","Recycle Bin"},{"\uD83D\uDCC1","My Docs"}};
+        for(String[] ic: icons){
+            LinearLayout ll = new LinearLayout(this); ll.setOrientation(LinearLayout.VERTICAL); ll.setGravity(Gravity.CENTER); ll.setPadding(20,25,20,25);
+            TextView e = new TextView(this); e.setText(ic[0]); e.setTextSize(40);
+            TextView t = new TextView(this); t.setText(ic[1]); t.setTextColor(Color.WHITE); t.setShadowLayer(4,1,1,Color.BLACK);
+            ll.addView(e); ll.addView(t);
+            String title = ic[1];
+            ll.setOnClickListener(v->openWindow(title));
+            desk.addView(ll);
+        }
+        root.addView(desk);
 
-        // XP Taskbar
+        // Taskbar
         LinearLayout taskbar = new LinearLayout(this);
-        taskbar.setOrientation(LinearLayout.HORIZONTAL);
-        taskbar.setBackgroundColor(Color.parseColor("#245EDC"));
-        taskbar.setPadding(5,5,5,5);
-        taskbar.setGravity(Gravity.CENTER_VERTICAL);
-        FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(-1,110);
-        tp.gravity = Gravity.BOTTOM;
-        taskbar.setLayoutParams(tp);
-
-        // Start Button
-        Button start = new Button(this);
-        start.setText("start");
-        start.setTextColor(Color.WHITE);
-        start.setTextSize(14);
-        GradientDrawable gd = new GradientDrawable();
-        gd.setColor(Color.parseColor("#3BA33B"));
-        gd.setCornerRadius(15);
-        gd.setStroke(2, Color.parseColor("#1F5A1F"));
-        start.setBackground(gd);
-        LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(180,90);
-        sp.setMargins(5,0,10,0);
-        start.setLayoutParams(sp);
-        start.setOnClickListener(v->Toast.makeText(this,"Welcome to Windows XP!",Toast.LENGTH_SHORT).show());
-        taskbar.addView(start);
-
-        // Clock
-        TextView clock = new TextView(this);
-        clock.setText(" 2:41 PM ");
-        clock.setTextColor(Color.WHITE);
-        clock.setBackgroundColor(Color.parseColor("#0F4ECF"));
-        clock.setPadding(20,10,20,10);
-        LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-2,-2);
-        cp.gravity = Gravity.END;
-        taskbar.addView(clock);
-
+        taskbar.setBackgroundColor(Color.parseColor("#E6000000"));
+        FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(-1,110); tp.gravity=Gravity.BOTTOM;
+        taskbar.setLayoutParams(tp); taskbar.setGravity(Gravity.CENTER_VERTICAL); taskbar.setPadding(15,5,15,5);
+        Button orb = new Button(this); orb.setText("◉"); orb.setTextSize(30); orb.setTextColor(Color.WHITE);
+        GradientDrawable ob = new GradientDrawable(); ob.setShape(GradientDrawable.OVAL); ob.setColors(new int[]{Color.parseColor("#4FC3F7"), Color.parseColor("#01579B")}); ob.setStroke(3,Color.WHITE);
+        orb.setBackground(ob); orb.setLayoutParams(new LinearLayout.LayoutParams(100,100));
+        taskbar.addView(orb);
         root.addView(taskbar);
         setContentView(root);
+
+        orb.setOnClickListener(v->Toast.makeText(this,"Start Menu - Next Update ma!",Toast.LENGTH_SHORT).show());
+    }
+
+    void openWindow(String title){
+        // Window Container
+        LinearLayout win = new LinearLayout(this);
+        win.setOrientation(LinearLayout.VERTICAL);
+        win.setBackgroundColor(Color.WHITE);
+        GradientDrawable border = new GradientDrawable(); border.setColor(Color.WHITE); border.setStroke(4, Color.parseColor("#245EDC")); border.setCornerRadius(8);
+        win.setBackground(border);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(800, 900);
+        lp.leftMargin = 150; lp.topMargin = 150;
+        win.setLayoutParams(lp);
+        win.setElevation(20);
+
+        // Title Bar - Draggable
+        LinearLayout titleBar = new LinearLayout(this);
+        titleBar.setOrientation(LinearLayout.HORIZONTAL);
+        titleBar.setBackgroundColor(Color.parseColor("#245EDC"));
+        titleBar.setPadding(15,15,15,15);
+        titleBar.setGravity(Gravity.CENTER_VERTICAL);
+        TextView titleT = new TextView(this); titleT.setText(title); titleT.setTextColor(Color.WHITE); titleT.setTextSize(14); titleT.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
+        Button close = new Button(this); close.setText("X"); close.setTextColor(Color.WHITE); close.setBackgroundColor(Color.RED);
+        titleBar.addView(titleT); titleBar.addView(close);
+        win.addView(titleBar);
+
+        // Content
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL); content.setPadding(20,20,20,20);
+        TextView c1 = new TextView(this); c1.setText("📁 Local Disk (C:)\n📁 Local Disk (D:)\n📁 USB Drive (E:)\n\nDrag this window by title bar!");
+        c1.setTextColor(Color.BLACK); c1.setTextSize(16);
+        content.addView(c1);
+        win.addView(content);
+
+        // Drag Logic
+        titleBar.setOnTouchListener((v, event)->{
+            switch(event.getAction()){
+                case MotionEvent.ACTION_DOWN:
+                    dX = win.getX() - event.getRawX();
+                    dY = win.getY() - event.getRawY();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    win.animate().x(event.getRawX()+dX).y(event.getRawY()+dY).setDuration(0).start();
+                    break;
+            }
+            return true;
+        });
+
+        close.setOnClickListener(v->root.removeView(win));
+        root.addView(win);
     }
 }
