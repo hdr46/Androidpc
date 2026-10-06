@@ -10,8 +10,8 @@ import android.widget.*;
 import java.util.*;
 
 public class MainActivity extends Activity {
-    PopupWindow startPopup;
     FrameLayout root;
+    PopupWindow startPopup;
     float dX, dY;
 
     @Override
@@ -22,86 +22,101 @@ public class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
         root = new FrameLayout(this);
+        // Bliss wallpaper color
         GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{Color.parseColor("#1E3C72"), Color.parseColor("#2A5298"), Color.parseColor("#3A7BD5")});
         root.setBackground(bg);
 
-        // Desktop Icons
+        // Desktop
         LinearLayout desk = new LinearLayout(this);
         desk.setOrientation(LinearLayout.VERTICAL);
         desk.setPadding(25,100,0,0);
-        String[][] icons = {{"\uD83D\uDCBB","Computer"},{"\uD83D\uDDD1\uFE0F","Recycle Bin"},{"\uD83D\uDCC1","My Docs"}};
+        String[][] icons = {{"\uD83D\uDCBB","Computer"},{"\uD83D\uDCC1","Documents"},{"\uD83D\uDDD1\uFE0F","Recycle Bin"},{"\uD83C\uDF10","Browser"}};
         for(String[] ic: icons){
             LinearLayout ll = new LinearLayout(this); ll.setOrientation(LinearLayout.VERTICAL); ll.setGravity(Gravity.CENTER); ll.setPadding(20,25,20,25);
-            TextView e = new TextView(this); e.setText(ic[0]); e.setTextSize(40);
-            TextView t = new TextView(this); t.setText(ic[1]); t.setTextColor(Color.WHITE); t.setShadowLayer(4,1,1,Color.BLACK);
+            TextView e = new TextView(this); e.setText(ic[0]); e.setTextSize(42);
+            TextView t = new TextView(this); t.setText(ic[1]); t.setTextColor(Color.WHITE); t.setTextSize(11); t.setShadowLayer(4,1,1,Color.BLACK);
             ll.addView(e); ll.addView(t);
-            String title = ic[1];
-            ll.setOnClickListener(v->openWindow(title));
+            ll.setOnClickListener(v->openWindow(ic[1]));
             desk.addView(ll);
         }
         root.addView(desk);
 
         // Taskbar
         LinearLayout taskbar = new LinearLayout(this);
-        taskbar.setBackgroundColor(Color.parseColor("#E6000000"));
-        FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(-1,110); tp.gravity=Gravity.BOTTOM;
-        taskbar.setLayoutParams(tp); taskbar.setGravity(Gravity.CENTER_VERTICAL); taskbar.setPadding(15,5,15,5);
+        GradientDrawable tb = new GradientDrawable(); tb.setColor(Color.parseColor("#CC000000")); tb.setStroke(1, Color.parseColor("#44FFFFFF"));
+        taskbar.setBackground(tb);
+        FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(-1,115); tp.gravity=Gravity.BOTTOM;
+        taskbar.setLayoutParams(tp); taskbar.setGravity(Gravity.CENTER_VERTICAL); taskbar.setPadding(10,5,10,5);
+
         Button orb = new Button(this); orb.setText("◉"); orb.setTextSize(30); orb.setTextColor(Color.WHITE);
-        GradientDrawable ob = new GradientDrawable(); ob.setShape(GradientDrawable.OVAL); ob.setColors(new int[]{Color.parseColor("#4FC3F7"), Color.parseColor("#01579B")}); ob.setStroke(3,Color.WHITE);
-        orb.setBackground(ob); orb.setLayoutParams(new LinearLayout.LayoutParams(100,100));
+        GradientDrawable ob = new GradientDrawable(); ob.setShape(GradientDrawable.OVAL); ob.setColors(new int[]{Color.parseColor("#6EC6FF"), Color.parseColor("#2196F3"), Color.parseColor("#0D47A1")}); ob.setStroke(2,Color.WHITE);
+        orb.setBackground(ob); orb.setLayoutParams(new LinearLayout.LayoutParams(105,105));
         taskbar.addView(orb);
+
+        TextView clock = new TextView(this); clock.setText(" "+java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(new Date())+" "); clock.setTextColor(Color.WHITE); clock.setPadding(20,0,20,0);
+        LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-2,-2); cp.leftMargin=450;
+        clock.setLayoutParams(cp);
+        taskbar.addView(clock);
         root.addView(taskbar);
         setContentView(root);
 
-        orb.setOnClickListener(v->Toast.makeText(this,"Start Menu - Next Update ma!",Toast.LENGTH_SHORT).show());
+        orb.setOnClickListener(v->showStartMenu());
+    }
+
+    void showStartMenu(){
+        if(startPopup!=null && startPopup.isShowing()){startPopup.dismiss(); return;}
+        LinearLayout menu = new LinearLayout(this); menu.setOrientation(LinearLayout.HORIZONTAL);
+        menu.setBackgroundColor(Color.parseColor("#F2F2F2"));
+
+        LinearLayout left = new LinearLayout(this); left.setOrientation(LinearLayout.VERTICAL); left.setBackgroundColor(Color.WHITE); left.setPadding(10,10,10,10);
+        left.setLayoutParams(new LinearLayout.LayoutParams(450,-1));
+        PackageManager pm = getPackageManager();
+        List<ApplicationInfo> apps = pm.getInstalledApplications(0);
+        int count=0;
+        for(ApplicationInfo a: apps){
+            if(count>12) break;
+            if(pm.getLaunchIntentForPackage(a.packageName)!=null){
+                TextView tv = new TextView(this); tv.setText(" "+pm.getApplicationLabel(a)); tv.setPadding(20,20,20,20); tv.setTextColor(Color.BLACK);
+                tv.setOnClickListener(vv->{try{startActivity(pm.getLaunchIntentForPackage(a.packageName));}catch(Exception e){}});
+                left.addView(tv); count++;
+            }
+        }
+
+        LinearLayout right = new LinearLayout(this); right.setOrientation(LinearLayout.VERTICAL); right.setBackgroundColor(Color.parseColor("#0F2D5A")); right.setPadding(20,20,20,20);
+        right.setLayoutParams(new LinearLayout.LayoutParams(300,-1));
+        String[] r = {"\uD83D\uDCBB Computer","\uD83D\uDCC4 Documents","\u2699 Control Panel","\uD83D\uDD34 Shutdown"};
+        for(String it: r){ TextView tv = new TextView(this); tv.setText(it); tv.setTextColor(Color.WHITE); tv.setPadding(20,25,20,25); right.addView(tv); }
+
+        menu.addView(left); menu.addView(right);
+        startPopup = new PopupWindow(menu, 800, 900, true);
+        startPopup.setBackgroundDrawable(new GradientDrawable());
+        startPopup.showAtLocation(root, Gravity.BOTTOM|Gravity.LEFT, 10, 120);
     }
 
     void openWindow(String title){
-        // Window Container
         LinearLayout win = new LinearLayout(this);
         win.setOrientation(LinearLayout.VERTICAL);
-        win.setBackgroundColor(Color.WHITE);
-        GradientDrawable border = new GradientDrawable(); border.setColor(Color.WHITE); border.setStroke(4, Color.parseColor("#245EDC")); border.setCornerRadius(8);
-        win.setBackground(border);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(800, 900);
-        lp.leftMargin = 150; lp.topMargin = 150;
-        win.setLayoutParams(lp);
-        win.setElevation(20);
+        GradientDrawable bd = new GradientDrawable(); bd.setColor(Color.WHITE); bd.setStroke(4, Color.parseColor("#245EDC")); bd.setCornerRadius(10);
+        win.setBackground(bd);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(850, 950); lp.leftMargin=120; lp.topMargin=120;
+        win.setLayoutParams(lp); win.setElevation(25);
 
-        // Title Bar - Draggable
-        LinearLayout titleBar = new LinearLayout(this);
-        titleBar.setOrientation(LinearLayout.HORIZONTAL);
-        titleBar.setBackgroundColor(Color.parseColor("#245EDC"));
-        titleBar.setPadding(15,15,15,15);
-        titleBar.setGravity(Gravity.CENTER_VERTICAL);
-        TextView titleT = new TextView(this); titleT.setText(title); titleT.setTextColor(Color.WHITE); titleT.setTextSize(14); titleT.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
-        Button close = new Button(this); close.setText("X"); close.setTextColor(Color.WHITE); close.setBackgroundColor(Color.RED);
-        titleBar.addView(titleT); titleBar.addView(close);
-        win.addView(titleBar);
+        LinearLayout bar = new LinearLayout(this); bar.setBackgroundColor(Color.parseColor("#245EDC")); bar.setPadding(15,15,15,15); bar.setGravity(Gravity.CENTER_VERTICAL);
+        TextView tt = new TextView(this); tt.setText(title); tt.setTextColor(Color.WHITE); tt.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
+        Button cl = new Button(this); cl.setText("X"); cl.setTextColor(Color.WHITE); cl.setBackgroundColor(Color.RED);
+        bar.addView(tt); bar.addView(cl);
+        win.addView(bar);
 
-        // Content
-        LinearLayout content = new LinearLayout(this);
-        content.setOrientation(LinearLayout.VERTICAL); content.setPadding(20,20,20,20);
-        TextView c1 = new TextView(this); c1.setText("📁 Local Disk (C:)\n📁 Local Disk (D:)\n📁 USB Drive (E:)\n\nDrag this window by title bar!");
-        c1.setTextColor(Color.BLACK); c1.setTextSize(16);
-        content.addView(c1);
-        win.addView(content);
+        TextView cont = new TextView(this); cont.setText("\n 📁 Local Disk (C:)\n\n 📁 Local Disk (D:)\n\n 📁 Pictures\n\n 📁 Downloads\n\n\n 👉 Drag me from blue bar!");
+        cont.setPadding(30,30,30,30); cont.setTextColor(Color.BLACK); cont.setTextSize(16);
+        win.addView(cont);
 
-        // Drag Logic
-        titleBar.setOnTouchListener((v, event)->{
-            switch(event.getAction()){
-                case MotionEvent.ACTION_DOWN:
-                    dX = win.getX() - event.getRawX();
-                    dY = win.getY() - event.getRawY();
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    win.animate().x(event.getRawX()+dX).y(event.getRawY()+dY).setDuration(0).start();
-                    break;
-            }
+        bar.setOnTouchListener((v,e)->{
+            if(e.getAction()==MotionEvent.ACTION_DOWN){ dX=win.getX()-e.getRawX(); dY=win.getY()-e.getRawY(); }
+            if(e.getAction()==MotionEvent.ACTION_MOVE){ win.animate().x(e.getRawX()+dX).y(e.getRawY()+dY).setDuration(0).start(); }
             return true;
         });
-
-        close.setOnClickListener(v->root.removeView(win));
+        cl.setOnClickListener(v->root.removeView(win));
         root.addView(win);
     }
 }
