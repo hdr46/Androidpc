@@ -9,102 +9,122 @@ import android.os.Environment;
 import android.view.*;
 import android.widget.*;
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
 
 public class MainActivity extends Activity {
     FrameLayout root;
     float dX, dY;
-    File currentPath = Environment.getExternalStorageDirectory();
+    LinearLayout rightList;
+    LinearLayout currentWin;
 
     @Override
     protected void onCreate(Bundle s){
         super.onCreate(s);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        // Permission
+        
+        // Permission mangi le
         if(checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.READ_MEDIA_IMAGES}, 1);
+            requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 101);
         }
 
         root = new FrameLayout(this);
-        root.setBackgroundColor(Color.parseColor("#1A8CFF")); // Win7 blue
+        root.setBackgroundColor(Color.parseColor("#0A82FF")); // Ekdam tara screenshot jevo blue
 
-        // Desktop Icons
+        // ===== DESKTOP ICONS =====
         LinearLayout desk = new LinearLayout(this);
         desk.setOrientation(LinearLayout.VERTICAL);
-        desk.setPadding(15,20,0,0);
-        String[][] icons = {{"🗑️","Recycle Bin"},{"💻","Computer"}};
-        for(String[] ic: icons){
-            LinearLayout ll = new LinearLayout(this); ll.setOrientation(LinearLayout.VERTICAL); ll.setGravity(Gravity.CENTER); ll.setPadding(10,15,10,15);
-            TextView e = new TextView(this); e.setText(ic[0]); e.setTextSize(40);
-            TextView t = new TextView(this); t.setText(ic[1]); t.setTextColor(Color.WHITE); t.setShadowLayer(3,1,1,Color.BLACK); t.setTextSize(11);
-            ll.addView(e); ll.addView(t);
-            ll.setOnClickListener(v->openComputer());
-            desk.addView(ll);
-        }
+        desk.setPadding(20,30,0,0);
+        
+        desk.addView(makeIcon("🗑️","Recycle Bin", v->openWindow("Recycle Bin")));
+        desk.addView(makeIcon("💻","Computer", v->openWindow("Computer")));
+        
         root.addView(desk);
+
+        // ===== TASKBAR - Niche hamesha dekhashe - FIX =====
+        LinearLayout taskbar = new LinearLayout(this);
+        taskbar.setOrientation(LinearLayout.HORIZONTAL);
+        taskbar.setGravity(Gravity.CENTER_VERTICAL);
+        taskbar.setBackgroundColor(Color.parseColor("#C0C0C0")); // Classic taskbar
+        GradientDrawable tb = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor("#245EDC"), Color.parseColor("#1941A5")});
+        taskbar.setBackground(tb);
+        FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(-1, 95);
+        tp.gravity = Gravity.BOTTOM;
+        taskbar.setLayoutParams(tp);
+        
+        Button start = new Button(this);
+        start.setText("  ⊞ Start");
+        start.setTextColor(Color.WHITE);
+        start.setTextSize(14);
+        start.setBackgroundColor(Color.parseColor("#0A8A0A"));
+        start.setLayoutParams(new LinearLayout.LayoutParams(250, 85));
+        taskbar.addView(start);
+        
+        root.addView(taskbar);
         setContentView(root);
     }
 
-    void openComputer(){
-        // Main Window like your screenshot
+    LinearLayout makeIcon(String emoji, String name, View.OnClickListener clk){
+        LinearLayout ll = new LinearLayout(this); ll.setOrientation(LinearLayout.VERTICAL); ll.setGravity(Gravity.CENTER); ll.setPadding(15,20,15,20);
+        TextView e = new TextView(this); e.setText(emoji); e.setTextSize(40);
+        TextView t = new TextView(this); t.setText(name); t.setTextColor(Color.WHITE); t.setTextSize(11); t.setShadowLayer(3,1,1,Color.BLACK); t.setGravity(Gravity.CENTER);
+        ll.addView(e); ll.addView(t);
+        ll.setOnClickListener(clk);
+        return ll;
+    }
+
+    void openWindow(String title){
+        if(currentWin!=null) root.removeView(currentWin);
+        
         LinearLayout win = new LinearLayout(this);
         win.setOrientation(LinearLayout.VERTICAL);
-        win.setBackgroundColor(Color.parseColor("#FFFFFF"));
-        GradientDrawable bd = new GradientDrawable(); bd.setColor(Color.WHITE); bd.setStroke(2, Color.parseColor("#6D8DBE")); bd.setCornerRadius(8);
+        win.setBackgroundColor(Color.WHITE);
+        GradientDrawable bd = new GradientDrawable(); bd.setColor(Color.WHITE); bd.setStroke(3, Color.parseColor("#0831D9")); bd.setCornerRadius(6);
         win.setBackground(bd);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(1100, 1200); lp.leftMargin=60; lp.topMargin=40;
-        win.setLayoutParams(lp); win.setElevation(20);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(1000, 1200); lp.leftMargin=60; lp.topMargin=20;
+        win.setLayoutParams(lp); win.setElevation(30);
+        currentWin = win;
 
-        // Title Bar - like screenshot
-        LinearLayout titleBar = new LinearLayout(this);
-        titleBar.setBackgroundColor(Color.parseColor("#D6E6F8"));
-        titleBar.setPadding(10,5,5,5);
-        titleBar.setGravity(Gravity.CENTER_VERTICAL);
-        titleBar.setLayoutParams(new LinearLayout.LayoutParams(-1, 80));
-        TextView title = new TextView(this); title.setText(" Computer"); title.setTextColor(Color.BLACK); title.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
-        Button close = new Button(this); close.setText("X"); close.setTextColor(Color.WHITE); close.setBackgroundColor(Color.parseColor("#E81123")); close.setLayoutParams(new LinearLayout.LayoutParams(110,70));
-        titleBar.addView(title); titleBar.addView(close);
-        win.addView(titleBar);
+        // Title bar - MOTO X BUTTON
+        LinearLayout bar = new LinearLayout(this); bar.setBackgroundColor(Color.parseColor("#0831D9")); bar.setGravity(Gravity.CENTER_VERTICAL); bar.setLayoutParams(new LinearLayout.LayoutParams(-1, 90)); bar.setPadding(10,0,0,0);
+        TextView tt = new TextView(this); tt.setText(" "+title); tt.setTextColor(Color.WHITE); tt.setTextSize(15); tt.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
+        Button close = new Button(this); close.setText("X"); close.setTextSize(22); close.setTextColor(Color.WHITE); close.setBackgroundColor(Color.RED); close.setLayoutParams(new LinearLayout.LayoutParams(120, 85));
+        bar.addView(tt); bar.addView(close);
+        win.addView(bar);
 
-        // Address Bar
-        LinearLayout addr = new LinearLayout(this); addr.setBackgroundColor(Color.parseColor("#F0F0F0")); addr.setPadding(10,10,10,10);
-        TextView addrT = new TextView(this); addrT.setText("Computer > System (C:) > "); addrT.setTextColor(Color.BLACK); addrT.setTextSize(12);
-        addr.addView(addrT);
-        win.addView(addr);
-
-        // Content Split - Left + Right like your photo
-        LinearLayout split = new LinearLayout(this); split.setOrientation(LinearLayout.HORIZONTAL); split.setLayoutParams(new LinearLayout.LayoutParams(-1,-1));
-
-        // LEFT SIDEBAR - Quick Access
-        LinearLayout left = new LinearLayout(this); left.setOrientation(LinearLayout.VERTICAL); left.setBackgroundColor(Color.parseColor("#FFFFFF")); left.setPadding(10,10,10,10); left.setLayoutParams(new LinearLayout.LayoutParams(350,-1));
-        String[] leftItems = {"⭐ Quick Access","📁 Desktop","⬇️ Downloads","📄 Documents","🎵 Music","🖼️ Pictures","🎬 Videos"};
-        for(String it: leftItems){
-            TextView tv = new TextView(this); tv.setText(it); tv.setPadding(20,18,20,18); tv.setTextColor(it.startsWith("⭐")?Color.parseColor("#003399"):Color.BLACK); tv.setTextSize(13);
-            if(it.equals("🖼️ Pictures")){
-                tv.setBackgroundColor(Color.parseColor("#CCE8FF"));
-                tv.setOnClickListener(v->loadRealFiles(new File(Environment.getExternalStorageDirectory()+"/DCIM"), rightList));
+        // Content
+        if(title.equals("Recycle Bin")){
+            TextView tv = new TextView(this); tv.setText("\n\n  Recycle Bin is Empty"); tv.setTextSize(16); tv.setTextColor(Color.BLACK); win.addView(tv);
+        } else {
+            LinearLayout split = new LinearLayout(this); split.setOrientation(LinearLayout.HORIZONTAL); split.setLayoutParams(new LinearLayout.LayoutParams(-1,-1));
+            
+            // Left - ACTIVE BADDHA
+            LinearLayout left = new LinearLayout(this); left.setOrientation(LinearLayout.VERTICAL); left.setLayoutParams(new LinearLayout.LayoutParams(300,-1)); left.setBackgroundColor(Color.parseColor("#F5F5F5"));
+            String[] leftItems = {"⭐ Quick Access","⬇️ Downloads","🖼️ Pictures","🎬 Videos","🎵 Music","📄 Documents"};
+            for(String it: leftItems){
+                TextView row = new TextView(this); row.setText(" "+it); row.setPadding(15,18,15,18); row.setTextColor(Color.BLACK); row.setTextSize(13);
+                row.setOnClickListener(v->{
+                    for(int i=0;i<left.getChildCount();i++) left.getChildAt(i).setBackgroundColor(Color.parseColor("#F5F5F5"));
+                    row.setBackgroundColor(Color.parseColor("#CCE8FF"));
+                    File f = Environment.getExternalStorageDirectory();
+                    if(it.contains("Down")) f = new File(f+"/Download");
+                    else if(it.contains("Pic")) f = new File(f+"/DCIM");
+                    else if(it.contains("Vid")) f = new File(f+"/Movies");
+                    else if(it.contains("Music")) f = new File(f+"/Music");
+                    else if(it.contains("Doc")) f = new File(f+"/Documents");
+                    loadFiles(f);
+                });
+                left.addView(row);
             }
-            if(it.equals("⬇️ Downloads")){
-                tv.setOnClickListener(v->loadRealFiles(new File(Environment.getExternalStorageDirectory()+"/Download"), rightList));
-            }
-            left.addView(tv);
+            
+            rightList = new LinearLayout(this); rightList.setOrientation(LinearLayout.VERTICAL); rightList.setBackgroundColor(Color.WHITE);
+            ScrollView sv = new ScrollView(this); sv.addView(rightList); sv.setLayoutParams(new LinearLayout.LayoutParams(-1,-1));
+            
+            split.addView(left); split.addView(sv);
+            win.addView(split);
+            loadFiles(Environment.getExternalStorageDirectory());
         }
 
-        // RIGHT FILE LIST
-        rightList = new LinearLayout(this); rightList.setOrientation(LinearLayout.VERTICAL); rightList.setBackgroundColor(Color.WHITE); rightList.setLayoutParams(new LinearLayout.LayoutParams(-1,-1)); rightList.setPadding(10,10,10,10);
-        ScrollView sv = new ScrollView(this); sv.addView(rightList);
-
-        split.addView(left); split.addView(sv);
-        win.addView(split);
-
-        // Initial Load - C: Drive folders
-        loadRealFiles(new File("/storage/emulated/0"), rightList);
-
-        // Drag
-        titleBar.setOnTouchListener((v,e)->{
+        bar.setOnTouchListener((v,e)->{
             if(e.getAction()==MotionEvent.ACTION_DOWN){ dX=win.getX()-e.getRawX(); dY=win.getY()-e.getRawY(); }
             if(e.getAction()==MotionEvent.ACTION_MOVE){ win.setX(e.getRawX()+dX); win.setY(e.getRawY()+dY); }
             return true;
@@ -113,30 +133,20 @@ public class MainActivity extends Activity {
         root.addView(win);
     }
 
-    LinearLayout rightList;
-    void loadRealFiles(File folder, LinearLayout list){
-        list.removeAllViews();
-        if(!folder.exists()){ TextView tv=new TextView(this); tv.setText("This folder is empty"); tv.setPadding(30,30,30,30); list.addView(tv); return; }
+    void loadFiles(File folder){
+        if(rightList==null) return;
+        rightList.removeAllViews();
         File[] files = folder.listFiles();
-        if(files==null || files.length==0){ TextView tv=new TextView(this); tv.setText("This folder is empty"); tv.setPadding(30,30,30,30); list.addView(tv); return; }
-
-        Arrays.sort(files, (a,b)->Boolean.compare(b.isDirectory(), a.isDirectory())); // folders first
-
+        if(files==null){ rightList.addView(new TextView(this){{setText("  Empty"); setPadding(20,20,20,20);}}); return; }
+        Arrays.sort(files,(a,b)->Boolean.compare(!a.isDirectory(),!b.isDirectory()));
         for(File f: files){
             if(f.getName().startsWith(".")) continue;
-            LinearLayout row = new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setPadding(15,12,15,12); row.setGravity(Gravity.CENTER_VERTICAL);
-            TextView icon = new TextView(this); icon.setText(f.isDirectory()?"📁":"📄"); icon.setTextSize(20); icon.setPadding(0,0,15,0);
-            TextView name = new TextView(this); name.setText(f.getName()); name.setTextColor(Color.BLACK); name.setTextSize(13); name.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
-            row.addView(icon); row.addView(name);
-            if(f.isDirectory()){
-                row.setOnClickListener(v->loadRealFiles(f, list));
-            } else {
-                row.setOnClickListener(v->Toast.makeText(this,"Opening: "+f.getName(),Toast.LENGTH_SHORT).show());
-            }
-            list.addView(row);
-            // divider
-            View div = new View(this); div.setBackgroundColor(Color.parseColor("#EEEEEE")); div.setLayoutParams(new LinearLayout.LayoutParams(-1,2));
-            list.addView(div);
+            LinearLayout r = new LinearLayout(this); r.setOrientation(LinearLayout.HORIZONTAL); r.setPadding(12,12,12,12);
+            TextView ic = new TextView(this); ic.setText(f.isDirectory()?"📁 ":"📄 "); ic.setTextSize(16);
+            TextView nm = new TextView(this); nm.setText(f.getName()); nm.setTextColor(Color.BLACK); nm.setTextSize(12);
+            r.addView(ic); r.addView(nm);
+            if(f.isDirectory()) r.setOnClickListener(v->loadFiles(f));
+            rightList.addView(r);
         }
     }
 }
