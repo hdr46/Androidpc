@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#008080">
+    <GridView android:id="@+id/grid" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:numColumns="3"
+        android:padding="20dp" android:verticalSpacing="30dp" />
+    <LinearLayout android:id="@+id/start_menu" android:layout_width="250dp"
+        android:layout_height="400dp" android:layout_gravity="bottom|start"
+        android:layout_marginBottom="40dp" android:background="#C0C0C0"
+        android:orientation="vertical" android:visibility="gone">
+        <ListView android:id="@+id/start_list" android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
+        android:layout_gravity="bottom" android:background="#C0C0C0"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/btn_start" android:layout_width="80dp"
+            android:layout_height="30dp" android:background="#000080"
+            android:text=" Start" android:textColor="#FFFFFF"
+            android:textStyle="bold" android:gravity="center_vertical" />
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <TextView android:id="@+id/battery" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="100% " android:textColor="#000000"/>
+        <TextView android:id="@+id/clock" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_marginRight="10dp"
+            android:text="12:00 PM" android:textColor="#000000"/>
+    </LinearLayout>
+</FrameLayout>
