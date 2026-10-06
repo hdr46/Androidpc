@@ -9,7 +9,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: gradle/gradle-build-action@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.5
       - run: gradle :app:assembleDebug
